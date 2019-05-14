@@ -76,20 +76,16 @@ def createMasks(file_to_dir_map):
             if not (this_filename == last_filename):
                 if not (last_filename == 'zzz'):
                     saveMaskAsPng(this_mask, last_filename, file_to_dir_map)
-                    #saveMaskAsCsv(this_mask, last_filename, file_to_dir_map)
                 this_mask = np.zeros(img_shape, dtype=np.uint8)
                 last_filename = this_filename
             if not pd.isnull(row[1]):
                 pixels = getPixels(row[1])
-                #applyPixels(pixels, this_mask )
                 applyPixelsBinary(pixels, this_mask )
-                #applyPixelsBW(pixels, this_mask )
         n += 1
         #if n > 40: break	# Used for testing, so don't have to go through all images.
 
     # Save last file.
     saveMaskAsPng(this_mask, last_filename, file_to_dir_map)
-    #saveMaskAsCsv(this_mask, last_filename, file_to_dir_map)
 
 
 def getPixels(src_line):
@@ -124,41 +120,11 @@ def getPixel(pixel_num):
     return [x, y]
 
 
-def applyPixels( pixels, mask ):
-    # Change values for specified pixels to 255, in given mask.
-    # Changes provided mask.
-    for row, col in pixels:
-        mask[row, col] = [ 0, 128, 0]
-        #mask[row, col, 0] = 255
-        #mask[row, col, 1] = 255
-        #mask[row, col, 2] = 255
-
-
 def applyPixelsBinary( pixels, mask ):
-    # Change green channel for specified pixels to 1, in given mask.
+    # Change all channels for specified pixels to 1, in given mask.
     # Changes provided mask.
     for row, col in pixels:
         mask[row, col] = [1, 1, 1]
-
-def applyPixelsBW( pixels, mask ):
-    # Expect single channel image, set given pixels to white.
-    # Changes provided mask.
-    # Tried to use this to create b&w png file, but matplotlib.imsave only accepts 3 channel.
-    for row, col in pixels:
-        mask[row, col] = 1
-
-
-def saveMaskAsJpg(this_mask, filename, file_to_dir_map):
-    # Save mask as jpg in labels dir next to directory original image was in.
-    if filename in file_to_dir_map:
-        src_dir = file_to_dir_map[filename]
-        dest_dir, zz = os.path.split(src_dir)
-        dest_dir = os.path.join(dest_dir, 'labels')
-        ensureDirExists(dest_dir)
-        dest_filename = os.path.join(dest_dir, filename)
-        mpimg.imsave(dest_filename, this_mask, format='jpg')
-    else:
-        print( "Unable to find file to directory mapping for file ", filename)
 
 
 def saveMaskAsPng(this_mask, filename, file_to_dir_map):
@@ -177,37 +143,6 @@ def saveMaskAsPng(this_mask, filename, file_to_dir_map):
         print( "Unable to find file to directory mapping for file ", filename)
 
 
-def saveMaskAsCsv(this_mask, filename, file_to_dir_map):
-    # Save mask as csv in labels dir next to directory original image was in.
-    if filename in file_to_dir_map:
-        src_dir = file_to_dir_map[filename]
-        dest_dir, zz = os.path.split(src_dir)
-        dest_dir = os.path.join(dest_dir, 'labels')
-        ensureDirExists(dest_dir)
-        base, ext = os.path.splitext(filename)
-        dest_filename = os.path.join(dest_dir, base + "r.csv")
-        np.savetxt(dest_filename, this_mask[:, :, 0], delimiter=',')
-        dest_filename = os.path.join(dest_dir, base + "g.csv")
-        np.savetxt(dest_filename, this_mask[:, :, 1], delimiter=',')
-        saveNonZeroAsCsv( os.path.join(dest_dir, base + "nz_r.csv"), this_mask[:, :, 0])
-        saveNonZeroAsCsv( os.path.join(dest_dir, base + "nz_g.csv"), this_mask[:, :, 1])
-        #dest_filename = os.path.join(dest_dir, base + "b.csv")
-        #np.savetxt(dest_filename, this_mask[:, :, 2], delimiter=',')
-    else:
-        print( "Unable to find file to directory mapping for file ", filename)
-
-
-def saveNonZeroAsCsv(outputFileName, img):
-    # Given a 2d array, save x, y coordinates and values for all non-zero values to a csv file.
-
-    print( "shape: ", img.shape)
-    with open(outputFileName, 'wt') as f:
-        for row in range(img.shape[0]):
-            for col in range(img.shape[1]):
-                if img[row,col] > 0:
-                    f.write(str(row) + ", " + str(col) + ": " + str(img[row,col]) + "\n")
-
-
 def ensureDirExists(targetDir) :
     # Ensure that given directory exists. (Create it if it doesn't.)
 
@@ -220,10 +155,11 @@ def createEmptyMask():
     this_mask = np.zeros(img_shape, dtype = np.uint8)
     mpimg.imsave('empty.png', this_mask, format='png')
 
-#if __name__ == "__main__":
-    # Create dictionary to map from image file name to directory where it is located.
+
 #img_dirs = [test_dir]
 img_dirs = [train_dir, validate_dir, test_dir]
+
+# Create dictionary to map from image file name to directory where it is located.
 print ('Started creating file to dir map.')
 file_to_dir_map = getFileToDirMap(img_dirs)
 print ('Finished creating file to dir map.')
@@ -231,19 +167,5 @@ createMasks(file_to_dir_map)
 
 #createEmptyMask()
 
-'''
-file_map = {}
-file_map['allzeros.jpg'] = base_dir
-file_map['all255s.jpg'] = base_dir
-
-this_mask = np.zeros(img_shape, dtype=np.uint8)
-saveMask(this_mask, 'allzeros.jpg', file_map)
-for i in range(img_size):
-    for j in range(200, 400):
-        this_mask[i, j, 0] = 255
-        this_mask[i, j, 1] = 255
-        this_mask[i, j, 2] = 255
-saveMask(this_mask, 'all255s.jpg', file_map)
-'''
 
 print("complete")

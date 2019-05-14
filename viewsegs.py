@@ -44,24 +44,6 @@ lastkey = ''
 imageLabels = {}		# Dictionary, key = filename, value = label for image.
 
 
-def createMaskForImage(imgFilename):
-	# For given file name, create mask showing where results claim boats are.
-	# Because a given image can have multiple lines in the results file, have to go through all records.
-
-	mask = np.zeros((imgSize, imgSize, 3))
-	#mask = np.zeros((imgSize, imgSize))
-	
-	#df = pd.read_csv(segResultsFilename, sep=',', index_col='ImageId')
-	#print( "createMaskForImage, len(df)=", len(df) )
-	#for row in df.itertuples():
-	for row in segResults.itertuples():
-		if row[0].lower() == imgFilename.lower():
-			pixels = getPixels(row[1])
-			applyPixels(pixels, mask )
-
-	return mask
-
-
 def yes_or_no(question):
 	# Get yes/no response from user, return True/False.
 	while True:
@@ -148,16 +130,13 @@ def show_next_image(origImgName, boatOnly):
 
 def review_images(dir):
 	# Let user go through images in given directory, using arrow keys to move forward and back.
-	# 'a' copies image to a directory, 'b' to b. 'q' or escape quits.	# Any other key will move to the next image.
+	# 'a' copies image to a directory, 'b' to b. 'q' or escape quits.	
+        # Any other key will move to the next image.
 	# User can specify file number to start at.
 	# Each displayed image includes filename and label.
 
 	ensureDirExists(aDir)
 	ensureDirExists(bDir)
-
-	#global segResults
-	#segResults = pd.read_csv(segResultsFilename, sep=',', index_col='ImageId')
-	#print( "1. segResults.shape", segResults.shape)
 
 	createImageLabels()
 
@@ -177,7 +156,6 @@ def review_images(dir):
 	boatOnly = yes_or_no("Show only images containing boats?")
 
 	# Using while loop so can move forward and backward in list of files.
-	#for tmpFile in srcFiles:
 	while n < len(srcFiles):
 		tmpFile = srcFiles[n]
 		if n >= startNum:
@@ -205,7 +183,6 @@ def review_images(dir):
 
 if __name__ == "__main__":
 	review_images( srcDir )
-	#review_images( r"E:\Code\Kaggle\Airbus ShipID\ViewSegments\dir1" )
 
 
 
